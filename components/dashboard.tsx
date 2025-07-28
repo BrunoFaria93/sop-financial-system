@@ -112,20 +112,25 @@ export default function Dashboard() {
       } else if (itemToDelete.type === "pagamento") {
         await dispatch(deletePagamento(itemToDelete.id)).unwrap();
       }
+
+      // Só fecha o dialog e recarrega se deu certo
       setShowDeleteDialog(false);
       setItemToDelete(null);
       handleRefreshData();
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Erro ao deletar ${itemToDelete.type}:`, error);
-      alert(
-        `Erro ao deletar ${itemToDelete.type}. ${
-          itemToDelete.type === "despesa"
-            ? "Verifique se não há empenhos associados."
-            : itemToDelete.type === "empenho"
-            ? "Verifique se não há pagamentos associados."
-            : ""
-        }`
-      );
+
+      // Fechar o dialog mesmo com erro
+      setShowDeleteDialog(false);
+      setItemToDelete(null);
+
+      // Mostrar mensagem de erro específica sem recarregar dados
+      const errorMessage =
+        typeof error === "string"
+          ? error
+          : error?.message || `Erro ao deletar ${itemToDelete.type}`;
+
+      alert(errorMessage);
     }
   };
 

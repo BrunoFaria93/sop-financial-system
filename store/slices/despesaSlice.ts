@@ -123,9 +123,14 @@ export const updateDespesaAPI = createAsyncThunk(
       );
       return formatDespesaFromBackend(response.data);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || "Erro ao atualizar despesa"
-      );
+      // Tentar diferentes formas de pegar a mensagem
+      const backendMessage =
+        error.response?.data?.message ||
+        error.response?.data ||
+        error.message ||
+        "Erro ao atualizar despesa";
+
+      return rejectWithValue(backendMessage);
     }
   }
 );
@@ -137,9 +142,14 @@ export const deleteDespesaAPI = createAsyncThunk(
       await api.delete(`/despesas/${id}`);
       return id;
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || "Erro ao deletar despesa"
-      );
+      // Tentar diferentes formas de pegar a mensagem do backend
+      const backendMessage =
+        error.response?.data?.message ||
+        error.response?.data ||
+        error.message ||
+        "Erro ao deletar despesa";
+
+      return rejectWithValue(backendMessage);
     }
   }
 );

@@ -47,17 +47,46 @@ public class DespesaService {
     }
     
     public DespesaDTO update(Long id, DespesaDTO despesaDTO) {
+        System.out.println("=== INÍCIO UPDATE DESPESA ===");
+        System.out.println("ID da despesa: " + id);
+        System.out.println("Novo valor: " + despesaDTO.getValor());
+        
         Optional<Despesa> existingDespesa = despesaRepository.findById(id);
         if (existingDespesa.isEmpty()) {
             throw new RuntimeException("Despesa não encontrada com ID: " + id);
         }
         
-        // Verifica se o novo número de protocolo já existe (se for diferente do atual)
         Despesa despesa = existingDespesa.get();
+        System.out.println("Valor atual da despesa: " + despesa.getValor());
+        
+        // Verifica se o novo número de protocolo já existe (se for diferente do atual)
         if (!despesa.getNumeroProtocolo().equals(despesaDTO.getNumeroProtocolo()) &&
             despesaRepository.existsByNumeroProtocolo(despesaDTO.getNumeroProtocolo())) {
             throw new RuntimeException("Número de protocolo já existe: " + despesaDTO.getNumeroProtocolo());
         }
+        
+        // NOVA VALIDAÇÃO: Verificar se o novo valor não é menor que a soma dos empenhos
+        BigDecimal somaEmpenhos = empenhoRepository.sumValorByDespesaId(id);
+        if (somaEmpenhos == null) {
+            somaEmpenhos = BigDecimal.ZERO;
+        }
+        
+        System.out.println("Soma atual dos empenhos: " + somaEmpenhos);
+        
+        // Se há empenhos e o novo valor é menor que a soma dos empenhos
+        if (somaEmpenhos.compareTo(BigDecimal.ZERO) > 0 && 
+            despesaDTO.getValor().compareTo(somaEmpenhos) < 0) {
+            
+            String erro = String.format(
+                "O novo valor da despesa (R$ %,.2f) não pode ser menor que a soma dos empenhos já realizados (R$ %,.2f)",
+                despesaDTO.getValor(), somaEmpenhos
+            );
+            
+            System.out.println("ERRO: " + erro);
+            throw new RuntimeException(erro);
+        }
+        
+        System.out.println("Validação OK - Atualizando despesa");
         
         despesa.setNumeroProtocolo(despesaDTO.getNumeroProtocolo());
         despesa.setTipoDespesa(despesaDTO.getTipoDespesa());
@@ -68,6 +97,9 @@ public class DespesaService {
         despesa.setValor(despesaDTO.getValor());
         
         despesa = despesaRepository.save(despesa);
+        System.out.println("Despesa atualizada com sucesso");
+        System.out.println("=== FIM UPDATE DESPESA ===");
+        
         return convertToDTO(despesa);
     }
     

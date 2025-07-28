@@ -42,22 +42,24 @@ export function calculateDespesaStatus(
   return "Paga";
 }
 
+// CORREÇÃO: Mudei o tipo de string para number
 export function validateEmpenhoValue(
   despesa: Despesa,
   empenhos: Empenho[],
   novoValor: number,
-  empenhoEditandoId?: string
+  empenhoEditandoId?: number // MUDANÇA AQUI: string -> number
 ): string | null {
   const empenhosExistentes = empenhos.filter(
     (e) => e.despesaId === despesa.id && e.id !== empenhoEditandoId
   );
+
   const totalExistente = empenhosExistentes.reduce(
     (sum, e) => sum + e.valorEmpenho,
     0
   );
 
   if (totalExistente + novoValor > despesa.valor) {
-    return `O valor total dos empenhos (R$ ${(
+    const erro = `O valor total dos empenhos (R$ ${(
       totalExistente + novoValor
     ).toLocaleString("pt-BR", {
       minimumFractionDigits: 2,
@@ -65,6 +67,8 @@ export function validateEmpenhoValue(
       "pt-BR",
       { minimumFractionDigits: 2 }
     )})`;
+
+    return erro;
   }
 
   return null;
@@ -101,14 +105,14 @@ export function validatePagamentoValue(
 }
 
 export function canDeleteEmpenho(
-  empenhoId: number, // Changed from string to number
+  empenhoId: number,
   pagamentos: Pagamento[]
 ): boolean {
   return !pagamentos.some((p) => p.empenhoId === empenhoId);
 }
 
 export function canDeleteDespesa(
-  despesaId: number, // Changed from string to number
+  despesaId: number,
   empenhos: Empenho[]
 ): boolean {
   return !empenhos.some((e) => e.despesaId === despesaId);

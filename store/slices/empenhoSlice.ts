@@ -125,9 +125,14 @@ export const updateEmpenhoAPI = createAsyncThunk(
       );
       return formatEmpenhoFromBackend(response.data);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || "Erro ao atualizar empenho"
-      );
+      // Tentar diferentes formas de pegar a mensagem
+      const backendMessage =
+        error.response?.data?.message ||
+        error.response?.data ||
+        error.message ||
+        "Erro ao atualizar empenho";
+
+      return rejectWithValue(backendMessage);
     }
   }
 );
@@ -139,9 +144,14 @@ export const deleteEmpenhoAPI = createAsyncThunk(
       await api.delete(`/empenhos/${id}`);
       return id;
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || "Erro ao deletar empenho"
-      );
+      // Tentar diferentes formas de pegar a mensagem do backend
+      const backendMessage =
+        error.response?.data?.message ||
+        error.response?.data ||
+        error.message ||
+        "Erro ao deletar empenho";
+
+      return rejectWithValue(backendMessage);
     }
   }
 );

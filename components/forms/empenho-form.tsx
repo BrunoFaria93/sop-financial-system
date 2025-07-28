@@ -46,7 +46,7 @@ export default function EmpenhoForm({ empenho, onClose }: EmpenhoFormProps) {
     dataEmpenho: "",
     valorEmpenho: "",
     observacao: "",
-    despesaId: 0, // CORREÇÃO: Usar number como no tipo Empenho
+    despesaId: 0,
   });
   const [error, setError] = useState("");
 
@@ -57,7 +57,7 @@ export default function EmpenhoForm({ empenho, onClose }: EmpenhoFormProps) {
         dataEmpenho: new Date(empenho.dataEmpenho).toISOString().slice(0, 10),
         valorEmpenho: empenho.valorEmpenho.toString(),
         observacao: empenho.observacao,
-        despesaId: empenho.despesaId, // CORREÇÃO: Manter como number
+        despesaId: empenho.despesaId,
       });
     } else {
       setFormData((prev) => ({
@@ -72,15 +72,12 @@ export default function EmpenhoForm({ empenho, onClose }: EmpenhoFormProps) {
     e.preventDefault();
     setError("");
 
-    // CORREÇÃO: Verificar se despesaId foi selecionado (maior que 0)
     if (!formData.despesaId || formData.despesaId === 0) {
       setError("Selecione uma despesa");
       return;
     }
 
     const valor = Number.parseFloat(formData.valorEmpenho);
-
-    // CORREÇÃO: despesaId já é number, não precisa converter
     const despesa = despesas.find((d) => d.id === formData.despesaId);
 
     if (!despesa) {
@@ -88,40 +85,36 @@ export default function EmpenhoForm({ empenho, onClose }: EmpenhoFormProps) {
       return;
     }
 
+    // CORREÇÃO: Converter empenho.id para string para comparação correta
+    const empenhoEditandoId = empenho?.id;
     const validationError = validateEmpenhoValue(
       despesa,
       empenhos,
       valor,
-      empenho?.id?.toString()
+      empenhoEditandoId
     );
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
+
     if (validationError) {
       setError(validationError);
       return;
     }
 
-    // CORREÇÃO: Preparar dados no formato correto para o slice
     const empenhoData: Omit<Empenho, "id" | "numeroProtocoloDespesa"> = {
       numeroEmpenho: formData.numeroEmpenho,
       dataEmpenho: formData.dataEmpenho,
       valorEmpenho: valor,
       observacao: formData.observacao,
-      despesaId: formData.despesaId, // Já é number
+      despesaId: formData.despesaId,
     };
 
     try {
       if (empenho) {
-        // Para edição, inclui o ID
         const empenhoToUpdate: Empenho = {
           ...empenhoData,
           id: empenho.id,
         };
         await dispatch(updateEmpenhoAPI(empenhoToUpdate)).unwrap();
       } else {
-        // Para criação, usa createEmpenho
         await dispatch(createEmpenho(empenhoData)).unwrap();
       }
       onClose();
@@ -131,13 +124,10 @@ export default function EmpenhoForm({ empenho, onClose }: EmpenhoFormProps) {
     }
   };
 
-  // CORREÇÃO: Handler que converte string do Select para number
   const handleDespesaChange = (value: string) => {
     const despesaId = parseInt(value, 10);
-
     setFormData((prev) => ({ ...prev, despesaId }));
 
-    // Limpar erro quando uma despesa é selecionada
     if (
       error === "Despesa não encontrada" ||
       error === "Selecione uma despesa"
@@ -225,10 +215,8 @@ export default function EmpenhoForm({ empenho, onClose }: EmpenhoFormProps) {
                   <SelectValue placeholder="Selecione uma despesa">
                     {formData.despesaId > 0 && (
                       <span>
-                        {despesas.find(
-                          (d) =>
-                            d.id === parseInt(formData.despesaId.toString())
-                        )?.numeroProtocolo || "Seleção inválida"}
+                        {despesas.find((d) => d.id === formData.despesaId)
+                          ?.numeroProtocolo || "Seleção inválida"}
                       </span>
                     )}
                   </SelectValue>

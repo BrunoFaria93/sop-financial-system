@@ -22,6 +22,9 @@ public interface EmpenhoRepository extends JpaRepository<Empenho, Long> {
     @Query("SELECT SUM(e.valor) FROM Empenho e WHERE e.despesa.id = :despesaId")
     BigDecimal sumValorByDespesaId(@Param("despesaId") Long despesaId);
     
+    @Query("SELECT COALESCE(SUM(e.valor), 0) FROM Empenho e WHERE e.despesa.id = :despesaId AND e.id != :empenhoId")
+    BigDecimal sumValorByDespesaIdExcluding(@Param("despesaId") Long despesaId, @Param("empenhoId") Long empenhoId);
+    
     @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM Pagamento p WHERE p.empenho.id = :empenhoId")
     boolean hasPagamentos(@Param("empenhoId") Long empenhoId);
 }
